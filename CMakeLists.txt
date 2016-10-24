@@ -29,10 +29,19 @@
 # Authors: keir@google.com (Keir Mierle)
 #          alexs.mac@gmail.com (Alex Stewart)
 
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.0)
+
+#include Hunter module
+include("cmake/HunterGate.cmake")
+HunterGate(
+  URL "https://github.com/ruslo/hunter/archive/v0.15.25.tar.gz"
+  SHA1 "74993ddf2cf8a6a4c3e0b9d58027a624bf3060e7"
+)
+
 cmake_policy(VERSION 2.8)
 
 cmake_policy(SET CMP0003 NEW)
+cmake_policy(SET CMP0054 NEW)
 if (POLICY CMP0042)
   cmake_policy(SET CMP0042 NEW)
 endif()
