@@ -202,7 +202,8 @@ endif (IOS)
 
 unset(CERES_COMPILE_OPTIONS)
 
-# Eigen.
+# Eigen. / hunter dependencies
+hunter_add_package(Eigen)
 find_package(Eigen REQUIRED)
 if (EIGEN_FOUND)
   if (EIGEN_VERSION VERSION_LESS 3.1.0)
@@ -373,7 +374,7 @@ else (GFLAGS)
                          GFLAGS_NAMESPACE)
 endif (GFLAGS)
 
-# MiniGLog.
+# MiniGLog. / hunter dependencies
 if (MINIGLOG)
   message("-- Compiling minimal glog substitute into Ceres.")
   set(GLOG_INCLUDE_DIRS internal/ceres/miniglog)
@@ -388,6 +389,7 @@ if (MINIGLOG)
 else (MINIGLOG)
   # Don't search with REQUIRED so that configuration continues if not found and
   # we can output an error messages explaining MINIGLOG option.
+  hunter_add_package(glog)
   find_package(Glog)
   if (GLOG_FOUND)
     message("-- Found Google Log header in: ${GLOG_INCLUDE_DIRS}")
