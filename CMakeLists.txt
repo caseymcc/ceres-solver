@@ -203,7 +203,7 @@ endif (IOS)
 unset(CERES_COMPILE_OPTIONS)
 
 # Eigen. / hunter dependencies
-hunter_package(Eigen VERSION 3.2.4)
+#hunter_package(Eigen VERSION 3.2.4)
 hunter_add_package(Eigen)
 find_package(Eigen REQUIRED)
 if (EIGEN_FOUND)
