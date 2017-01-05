@@ -201,15 +201,16 @@ endif (IOS)
 unset(CERES_COMPILE_OPTIONS)
 
 # Eigen.
-find_package(Eigen REQUIRED)
-if (EIGEN_FOUND)
-  if (EIGEN_VERSION VERSION_LESS 3.1.0)
+hunter_add_package(Eigen)
+find_package(Eigen3 REQUIRED)
+if (EIGEN3_FOUND)
+    if (EIGEN3_VERSION_STRING VERSION_LESS 3.1.0)
     message(FATAL_ERROR "-- Ceres requires Eigen version >= 3.1.0 in order "
       "that Eigen/SparseCore be available, detected version of Eigen is: "
-      "${EIGEN_VERSION}")
-  endif (EIGEN_VERSION VERSION_LESS 3.1.0)
+      "${EIGEN3_VERSION_STRING}")
+  endif (EIGEN3_VERSION VERSION_LESS 3.1.0)
 
-  message("-- Found Eigen version ${EIGEN_VERSION}: ${EIGEN_INCLUDE_DIRS}")
+  message("-- Found Eigen version ${EIGEN_VERSION_STRING}: ${EIGEN_INCLUDE_DIRS}")
   # Ensure that only MPL2 licensed code is part of the default build.
   message("")
   message("   ===============================================================")
@@ -221,13 +222,13 @@ if (EIGEN_FOUND)
     message("   Ceres Solver as the Simplicial Cholesky factorization in Eigen")
     message("   is licensed under the LGPL. ")
 
-    if (EIGEN_VERSION VERSION_LESS 3.2.2)
+    if (EIGEN3_VERSION VERSION_LESS 3.2.2)
       message("   WARNING:")
       message("")
       message("   Your version of Eigen is older than version 3.2.2.")
       message("   The performance of SPARSE_NORMAL_CHOLESKY and SPARSE_SCHUR")
       message("   linear solvers will suffer. ")
-    endif (EIGEN_VERSION VERSION_LESS 3.2.2)
+    endif (EIGEN3_VERSION VERSION_LESS 3.2.2)
 
   else (EIGENSPARSE)
     message("   Disabling the use of Eigen as a sparse linear algebra library.")
@@ -237,7 +238,7 @@ if (EIGEN_FOUND)
   endif (EIGENSPARSE)
     message("   ===============================================================")
     message("")
-endif (EIGEN_FOUND)
+endif (EIGEN3_FOUND)
 
 # LAPACK (& BLAS).
 if (LAPACK)
@@ -521,7 +522,7 @@ include_directories(
 # Note that this is *not* propagated to clients, ie CERES_INCLUDE_DIRS
 # used by clients after find_package(Ceres) does not identify Eigen as
 # as system headers.
-include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 if (SUITESPARSE)
   include_directories(${SUITESPARSE_INCLUDE_DIRS})
