@@ -33,9 +33,16 @@ cmake_minimum_required(VERSION 2.8.0)
 cmake_policy(VERSION 2.8)
 
 cmake_policy(SET CMP0003 NEW)
+cmake_policy(SET CMP0053 NEW)
 if (POLICY CMP0042)
   cmake_policy(SET CMP0042 NEW)
 endif()
+
+include(cmake/HunterGate.cmake)
+HunterGate(
+  URL "https://github.com/ruslo/hunter/archive/v0.17.12.tar.gz"
+  SHA1 "74cfa490ef0d3ff8916523bbf5add53049aad7be"
+)
 
 project(Ceres C CXX)
 
