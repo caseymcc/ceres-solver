@@ -509,11 +509,6 @@ if (CXX11)
   endif()
 endif(CXX11)
 
-include_directories(
-  include
-  internal
-  internal/ceres
-  ${GLOG_INCLUDE_DIRS})
 # Eigen SparseQR generates various compiler warnings related to unused and
 # uninitialised local variables.  To avoid having to individually suppress these
 # warnings around the #include statments for Eigen headers across all GCC/Clang
@@ -523,7 +518,7 @@ include_directories(
 # Note that this is *not* propagated to clients, ie CERES_INCLUDE_DIRS
 # used by clients after find_package(Ceres) does not identify Eigen as
 # as system headers.
-include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
+#include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 if (SUITESPARSE)
   include_directories(${SUITESPARSE_INCLUDE_DIRS})
