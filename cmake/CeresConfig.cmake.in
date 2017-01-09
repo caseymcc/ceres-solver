@@ -228,7 +228,7 @@ else (EIGEN3_FOUND)
     "dependency: Eigen version ${CERES_EIGEN_VERSION}, please set "
     "EIGEN3_INCLUDE_DIR.")
 endif (EIGEN3_FOUND)
-list(APPEND CERES_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
+list(APPEND CERES_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS})
 
 # Glog.
 # Flag set during configuration and build of Ceres.

@@ -210,7 +210,7 @@ if (EIGEN3_FOUND)
       "${EIGEN3_VERSION_STRING}")
   endif (EIGEN3_VERSION VERSION_LESS 3.1.0)
 
-  message("-- Found Eigen version ${EIGEN_VERSION_STRING}: ${EIGEN_INCLUDE_DIRS}")
+  message("-- Found Eigen version ${EIGEN_VERSION_STRING}: ${EIGEN3_INCLUDE_DIRS}")
   # Ensure that only MPL2 licensed code is part of the default build.
   message("")
   message("   ===============================================================")
