@@ -260,14 +260,14 @@ else (CERES_USES_MINIGLOG)
   endif()
 
   # Search quietly s/t we control the timing of the error message if not found.
-  find_package(Glog QUIET)
-  if (GLOG_FOUND)
+  find_package(glog QUIET)
+  if (glog_FOUND)
     message(STATUS "Found required Ceres dependency: glog")
-  else (GLOG_FOUND)
+  else (glog_FOUND)
     ceres_report_not_found("Missing required Ceres "
       "dependency: glog. Searched using GLOG_INCLUDE_DIR_HINTS: "
       "${GLOG_INCLUDE_DIR_HINTS} and glog_DIR: ${glog_DIR}.")
-  endif (GLOG_FOUND)
+  endif (glog_FOUND)
   list(APPEND CERES_INCLUDE_DIRS ${GLOG_INCLUDE_DIRS})
 
   # gflags is only a public dependency of Ceres via glog, thus is not required
