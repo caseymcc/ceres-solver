@@ -385,6 +385,8 @@ if (MINIGLOG)
   # MINIGLOG instead of setting them.
   mark_as_advanced(FORCE GLOG_INCLUDE_DIR
                          GLOG_LIBRARY)
+
+  include_directories(${GLOG_INCLUDE_DIRS})
 else (MINIGLOG)
   # Don't search with REQUIRED so that configuration continues if not found and
   # we can output an error messages explaining MINIGLOG option.
