@@ -132,6 +132,14 @@ endif (SCHUR_SPECIALIZATIONS)
 # Build the list of dependencies for Ceres based on the current configuration.
 if (NOT MINIGLOG AND GLOG_FOUND)
   list(APPEND CERES_LIBRARY_PUBLIC_DEPENDENCIES ${GLOG_LIBRARIES})
+  if (GFLAGS_FOUND)
+    # If glog & gflags are both found, we assume that glog was built with
+    # gflags, as it is awkward to perform a try_compile() to verify this
+    # when gflags is an imported target (as it is in newer versions).
+    # As glog #includes gflags/gflags.h in glog/logging.h if compiled with
+    # gflags, it is thus a public dependency for Ceres in this case.
+    list(APPEND CERES_LIBRARY_PUBLIC_DEPENDENCIES ${GFLAGS_LIBRARIES})
+  endif()
 endif (NOT MINIGLOG AND GLOG_FOUND)
 
 if (SUITESPARSE AND SUITESPARSE_FOUND)
@@ -235,6 +243,38 @@ else (BUILD_SHARED_LIBS)
   target_link_libraries(ceres ${CERES_LIBRARY_DEPENDENCIES})
 endif (BUILD_SHARED_LIBS)
 
+# link Eigen3 if target exists, otherwise use legacy variable
+# Eigen3Config.cmake introduced with Eigen 3.3.1
+if (TARGET Eigen3::Eigen)
+  target_link_libraries(ceres Eigen3::Eigen)
+else()
+  target_include_directories(ceres SYSTEM PRIVATE
+    $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIRS}>)
+endif()
+
+if (NOT MINIGLOG)
+  # link to glog for logging
+  if (TARGET glog::glog)
+    target_link_libraries(ceres glog::glog)
+  elseif (TARGET glog)
+    target_link_libraries(ceres glog)
+  else()
+    target_include_directories(ceres PRIVATE
+      $<BUILD_INTERFACE:${GLOG_INCLUDE_DIRS}>)
+  endif()
+endif(NOT MINIGLOG)
+
+# include directories just for ceres
+target_include_directories(ceres PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/internal>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/internal/ceres>
+)
+# public include directories
+target_include_directories(ceres PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> # to build ceres and tests
+  $<INSTALL_INTERFACE:include>                   # for exported install target
+)
+
 install(TARGETS ceres
         EXPORT  CeresExport
         RUNTIME DESTINATION bin
@@ -242,11 +282,6 @@ install(TARGETS ceres
         ARCHIVE DESTINATION lib${LIB_SUFFIX})
 
 if (BUILD_TESTING AND GFLAGS)
-  # The CERES_GFLAGS_NAMESPACE compile definition is NOT stored in
-  # CERES_COMPILE_OPTIONS (and thus config.h) as Ceres itself does not
-  # require gflags, only the tests and examples do.
-  add_definitions(-DCERES_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
-
   add_library(gtest gmock_gtest_all.cc gmock_main.cc)
   if (BUILD_SHARED_LIBS)
     # Define gtest-specific shared library flags for compilation.

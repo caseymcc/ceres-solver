@@ -29,22 +29,20 @@
 # Authors: keir@google.com (Keir Mierle)
 #          alexs.mac@gmail.com (Alex Stewart)
 
-cmake_minimum_required(VERSION 3.0)
-
-#include Hunter module
-include("cmake/HunterGate.cmake")
-HunterGate(
-  URL "https://github.com/ruslo/hunter/archive/v0.15.25.tar.gz"
-  SHA1 "74993ddf2cf8a6a4c3e0b9d58027a624bf3060e7"
-)
-
+cmake_minimum_required(VERSION 2.8.0)
 cmake_policy(VERSION 2.8)
 
 cmake_policy(SET CMP0003 NEW)
-cmake_policy(SET CMP0054 NEW)
+cmake_policy(SET CMP0053 NEW)
 if (POLICY CMP0042)
   cmake_policy(SET CMP0042 NEW)
 endif()
+
+include(cmake/HunterGate.cmake)
+HunterGate(
+  URL "https://github.com/ruslo/hunter/archive/v0.17.12.tar.gz"
+  SHA1 "74cfa490ef0d3ff8916523bbf5add53049aad7be"
+)
 
 project(Ceres C CXX)
 
@@ -202,18 +200,17 @@ endif (IOS)
 
 unset(CERES_COMPILE_OPTIONS)
 
-# Eigen. / hunter dependencies
-#hunter_package(Eigen VERSION 3.2.4)
+# Eigen.
 hunter_add_package(Eigen)
-find_package(Eigen REQUIRED)
-if (EIGEN_FOUND)
-  if (EIGEN_VERSION VERSION_LESS 3.1.0)
+find_package(Eigen3 REQUIRED)
+if (EIGEN3_FOUND)
+    if (EIGEN3_VERSION_STRING VERSION_LESS 3.1.0)
     message(FATAL_ERROR "-- Ceres requires Eigen version >= 3.1.0 in order "
       "that Eigen/SparseCore be available, detected version of Eigen is: "
-      "${EIGEN_VERSION}")
-  endif (EIGEN_VERSION VERSION_LESS 3.1.0)
+      "${EIGEN3_VERSION_STRING}")
+  endif (EIGEN3_VERSION VERSION_LESS 3.1.0)
 
-  message("-- Found Eigen version ${EIGEN_VERSION}: ${EIGEN_INCLUDE_DIRS}")
+  message("-- Found Eigen version ${EIGEN_VERSION_STRING}: ${EIGEN3_INCLUDE_DIRS}")
   # Ensure that only MPL2 licensed code is part of the default build.
   message("")
   message("   ===============================================================")
@@ -225,13 +222,13 @@ if (EIGEN_FOUND)
     message("   Ceres Solver as the Simplicial Cholesky factorization in Eigen")
     message("   is licensed under the LGPL. ")
 
-    if (EIGEN_VERSION VERSION_LESS 3.2.2)
+    if (EIGEN3_VERSION VERSION_LESS 3.2.2)
       message("   WARNING:")
       message("")
       message("   Your version of Eigen is older than version 3.2.2.")
       message("   The performance of SPARSE_NORMAL_CHOLESKY and SPARSE_SCHUR")
       message("   linear solvers will suffer. ")
-    endif (EIGEN_VERSION VERSION_LESS 3.2.2)
+    endif (EIGEN3_VERSION VERSION_LESS 3.2.2)
 
   else (EIGENSPARSE)
     message("   Disabling the use of Eigen as a sparse linear algebra library.")
@@ -241,7 +238,7 @@ if (EIGEN_FOUND)
   endif (EIGENSPARSE)
     message("   ===============================================================")
     message("")
-endif (EIGEN_FOUND)
+endif (EIGEN3_FOUND)
 
 # LAPACK (& BLAS).
 if (LAPACK)
@@ -359,6 +356,7 @@ if (GFLAGS)
   if (GFLAGS_FOUND)
     message("-- Found Google Flags header in: ${GFLAGS_INCLUDE_DIRS}, "
       "in namespace: ${GFLAGS_NAMESPACE}")
+    add_definitions(-DCERES_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
   else (GFLAGS_FOUND)
     message("-- Did not find Google Flags (gflags), Building without gflags "
       "- no tests or tools will be built!")
@@ -375,7 +373,7 @@ else (GFLAGS)
                          GFLAGS_NAMESPACE)
 endif (GFLAGS)
 
-# MiniGLog. / hunter dependencies
+# MiniGLog.
 if (MINIGLOG)
   message("-- Compiling minimal glog substitute into Ceres.")
   set(GLOG_INCLUDE_DIRS internal/ceres/miniglog)
@@ -392,13 +390,24 @@ else (MINIGLOG)
   # we can output an error messages explaining MINIGLOG option.
   hunter_add_package(glog)
   find_package(Glog)
-  if (GLOG_FOUND)
-    message("-- Found Google Log header in: ${GLOG_INCLUDE_DIRS}")
-  else (GLOG_FOUND)
-    message(FATAL_ERROR "Can't find Google Log. Please set GLOG_INCLUDE_DIR & "
+  if (NOT GLOG_FOUND)
+    message(FATAL_ERROR "Can't find Google Log (glog). Please set either: "
+      "glog_DIR (newer CMake built versions of glog) or GLOG_INCLUDE_DIR & "
       "GLOG_LIBRARY or enable MINIGLOG option to use minimal glog "
       "implementation.")
-  endif (GLOG_FOUND)
+  endif(NOT GLOG_FOUND)
+  # By default, assume gflags was found, updating the message if it was not.
+  set(GLOG_GFLAGS_DEPENDENCY_MESSAGE
+    " Assuming glog was built with gflags support as gflags was found. "
+    "This will make gflags a public dependency of Ceres.")
+  if (NOT GFLAGS_FOUND)
+    set(GLOG_GFLAGS_DEPENDENCY_MESSAGE
+      " Assuming glog was NOT built with gflags support as gflags was "
+      "not found.  If glog was built with gflags, please set the "
+      "gflags search locations such that it can be found by Ceres.  "
+      "Otherwise, Ceres may fail to link due to missing gflags symbols.")
+  endif(NOT GFLAGS_FOUND)
+  message("-- Found Google Log (glog)." ${GLOG_GFLAGS_DEPENDENCY_MESSAGE})
 endif (MINIGLOG)
 
 if (NOT SCHUR_SPECIALIZATIONS)
@@ -500,11 +509,6 @@ if (CXX11)
   endif()
 endif(CXX11)
 
-include_directories(
-  include
-  internal
-  internal/ceres
-  ${GLOG_INCLUDE_DIRS})
 # Eigen SparseQR generates various compiler warnings related to unused and
 # uninitialised local variables.  To avoid having to individually suppress these
 # warnings around the #include statments for Eigen headers across all GCC/Clang
@@ -514,7 +518,7 @@ include_directories(
 # Note that this is *not* propagated to clients, ie CERES_INCLUDE_DIRS
 # used by clients after find_package(Ceres) does not identify Eigen as
 # as system headers.
-include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
+#include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 if (SUITESPARSE)
   include_directories(${SUITESPARSE_INCLUDE_DIRS})
@@ -602,6 +606,12 @@ endif (MINGW)
 
 # After the tweaks for the compile settings, disable some warnings on MSVC.
 if (MSVC)
+  # On MSVC, math constants are not included in <cmath> or <math.h> unless
+  # _USE_MATH_DEFINES is defined [1].  As we use M_PI in the examples, ensure
+  # that _USE_MATH_DEFINES is defined before the first inclusion of <cmath>.
+  #
+  # [1] https://msdn.microsoft.com/en-us/library/4hwaceh6.aspx
+  add_definitions("-D_USE_MATH_DEFINES")
   # Disable signed/unsigned int conversion warnings.
   add_definitions("/wd4018")
   # Disable warning about using struct/class for the same symobl.
@@ -834,8 +844,6 @@ install(FILES "${CMAKE_BINARY_DIR}/CeresConfig-install.cmake"
         RENAME CeresConfig.cmake
         DESTINATION ${RELATIVE_CMAKECONFIG_INSTALL_DIR})
 install(FILES "${CMAKE_BINARY_DIR}/CeresConfigVersion.cmake"
-              "${CMAKE_SOURCE_DIR}/cmake/FindEigen.cmake"
-              "${CMAKE_SOURCE_DIR}/cmake/FindGlog.cmake"
         DESTINATION ${RELATIVE_CMAKECONFIG_INSTALL_DIR})
 
 # Create an uninstall target to remove all installed files.
